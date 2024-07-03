@@ -43,7 +43,7 @@ public class PokemonApiTest extends Simulation {
                             return
                                     JsonValidator.builder()
                                             .withJsonNode(is)
-                                            .withJsonSchema(objectMapper.readTree(PokemonApiTest.class.getResourceAsStream("/schemas/subscription-api-schema.json")))
+                                            .withJsonSchema(objectMapper.readTree(PokemonApiTest.class.getResourceAsStream("/schemas/schema-example.json")))
                                             .build()
                                             .validate().size()<=0;
                         } catch (Exception e) {
