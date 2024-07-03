@@ -4,8 +4,11 @@ package pokemonapi;
 import java.time.Duration;
 import java.util.*;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.networknt.schema.JsonMetaSchema;
 import io.gatling.javaapi.core.*;
 import io.gatling.javaapi.http.*;
+import utils.JsonValidator;
 
 import static io.gatling.javaapi.core.CoreDsl.*;
 import static io.gatling.javaapi.http.HttpDsl.*;
@@ -19,6 +22,7 @@ public class PokemonApiTest extends Simulation {
     // We want to test the Pokemon API with 5 pokemons
     //
     // Define the base URL and headers
+    ObjectMapper objectMapper = new ObjectMapper();
     private HttpProtocolBuilder httpProtocol = http
             .baseUrl(baseUrl);
 
@@ -34,6 +38,20 @@ public class PokemonApiTest extends Simulation {
                     .check(jmesPath("abilities[0].ability.name").find().saveAs("ability"))
                     .check(bodyString().saveAs("BODY"))
                     .check(status().is(200))
+                    .check(bodyString().transform(is -> {
+                        try {
+                            return
+                                    JsonValidator.builder()
+                                            .withJsonNode(is)
+                                            .withJsonSchema(objectMapper.readTree(PokemonApiTest.class.getResourceAsStream("/schemas/subscription-api-schema.json")))
+                                            .build()
+                                            .validate().size()<=0;
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        return false;
+                    }).in(true))
+
 
 
             )
@@ -41,9 +59,14 @@ public class PokemonApiTest extends Simulation {
             .exec(
                     session -> {
                         System.out.println("Pokemon: " + session.getString("ability"));
-                        return session;
+
+                        return session.set("resultado", "false");
                     }
-            );
+            )
+
+
+
+            ;
     // Case 2 adicionar assert en el body
     // Set up the scenario
 
